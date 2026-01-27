@@ -30,6 +30,7 @@ export default function CreateMarketPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("general");
   const [customCategory, setCustomCategory] = useState("");
+  const [maxPoolCap, setMaxPoolCap] = useState("5000");
   const [settlementBlock, setSettlementBlock] = useState("");
   const [oracleAddress, setOracleAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +43,7 @@ export default function CreateMarketPage() {
     );
     setCategory("crypto");
     setCustomCategory("");
+    setMaxPoolCap("10000");
     setSettlementBlock("900000");
     setOracleAddress("");
   };
@@ -52,7 +54,7 @@ export default function CreateMarketPage() {
       return;
     }
 
-    if (!question || !settlementBlock) {
+    if (!question || !settlementBlock || !maxPoolCap) {
       alert("Please fill in all required fields");
       return;
     }
@@ -74,12 +76,20 @@ export default function CreateMarketPage() {
         ? someCV(principalCV(oracleAddress.trim()))
         : noneCV();
 
+      const maxPoolMicro = Math.floor(parseFloat(maxPoolCap) * 1000000);
+      if (!Number.isFinite(maxPoolMicro) || maxPoolMicro <= 0) {
+        alert("Please enter a valid max pool cap");
+        setIsSubmitting(false);
+        return;
+      }
+
       const functionArgs = marketType === "binary"
         ? [
             stringAsciiCV(question.slice(0, 100)),
             stringAsciiCV(description.slice(0, 500) || "No description"),
             stringAsciiCV(sanitizedCategory || "general"),
             oracleArg,
+            uintCV(maxPoolMicro),
             uintCV(parseInt(settlementBlock)),
           ]
         : [
@@ -87,6 +97,7 @@ export default function CreateMarketPage() {
             stringAsciiCV(description.slice(0, 500) || "No description"),
             stringAsciiCV(sanitizedCategory || "general"),
             oracleArg,
+            uintCV(maxPoolMicro),
             uintCV(parseInt(settlementBlock)),
             boolCV(true),
             boolCV(true),
@@ -118,6 +129,7 @@ export default function CreateMarketPage() {
           setDescription("");
           setCategory("general");
           setCustomCategory("");
+          setMaxPoolCap("5000");
           setOracleAddress("");
           setSettlementBlock("");
         },
@@ -269,6 +281,24 @@ export default function CreateMarketPage() {
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-2">32 chars max. Stored on-chain.</p>
+              </div>
+
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Max Pool Cap (STX)
+                </label>
+                <input
+                  type="number"
+                  value={maxPoolCap}
+                  onChange={(e) => setMaxPoolCap(e.target.value)}
+                  placeholder="e.g., 5000"
+                  min="1"
+                  step="1"
+                  className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  Hard cap for total liquidity in this market.
+                </p>
               </div>
 
               <div>

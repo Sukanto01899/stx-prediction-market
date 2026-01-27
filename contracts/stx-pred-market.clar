@@ -30,6 +30,7 @@
 (define-constant ERR-ORACLE-NOT-SET (err u1017))
 (define-constant ERR-ORACLE-ALREADY-SETTLED (err u1018))
 (define-constant ERR-MARKET-EXPIRED (err u1019))
+(define-constant ERR-MAX-POOL-EXCEEDED (err u1020))
 
 ;; Platform constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -42,6 +43,7 @@
 (define-constant BLOCKS-BEFORE-SETTLEMENT u6) ;; Wait 6 Bitcoin blocks for finality
 (define-constant CHALLENGE-WINDOW-BLOCKS u6) ;; Dispute window after settlement
 (define-constant MIN-MARKET-LIQUIDITY u5000000) ;; 5 STX minimum total pool
+(define-constant MAX-MARKET-LIQUIDITY u100000000000) ;; 100k STX hard ceiling
 
 ;; Outcome bit flags (Clarity 4 bitwise operations)
 (define-constant OUTCOME-A u1) ;; 0001
@@ -74,6 +76,7 @@
     settlement-type: (string-ascii 32), ;; "hash-even-odd", "hash-range", "oracle"
     oracle: (optional principal),
     oracle-outcome: (optional uint),
+    max-pool: uint,
     possible-outcomes: uint, ;; Bitwise packed outcomes (e.g., u3 = OUTCOME-A | OUTCOME-B)
     total-pool: uint,
     outcome-a-pool: uint,
@@ -340,6 +343,7 @@
     (description (string-utf8 1024))
     (category (string-ascii 32))
     (oracle (optional principal))
+    (max-pool uint)
     (settlement-burn-height uint)
   )
   (let (
@@ -351,6 +355,8 @@
       (> settlement-burn-height (+ current-burn-height BLOCKS-BEFORE-SETTLEMENT))
       ERR-INVALID-MARKET-PARAMS
     )
+    (asserts! (>= max-pool MIN-MARKET-LIQUIDITY) ERR-INVALID-MARKET-PARAMS)
+    (asserts! (<= max-pool MAX-MARKET-LIQUIDITY) ERR-INVALID-MARKET-PARAMS)
 
     ;; Charge market creation fee
     (try! (stx-transfer? MARKET-CREATION-FEE tx-sender CONTRACT-OWNER))
@@ -368,6 +374,7 @@
       ),
       oracle: oracle,
       oracle-outcome: none,
+      max-pool: max-pool,
       possible-outcomes: (pack-outcomes true true false false), ;; Only A and B
       total-pool: u0,
       outcome-a-pool: u0,
@@ -411,6 +418,7 @@
     (description (string-utf8 1024))
     (category (string-ascii 32))
     (oracle (optional principal))
+    (max-pool uint)
     (settlement-burn-height uint)
     (enable-outcome-a bool)
     (enable-outcome-b bool)
@@ -432,6 +440,8 @@
     (asserts! (>= (count-enabled-outcomes packed-outcomes) u2)
       ERR-INVALID-MARKET-PARAMS
     )
+    (asserts! (>= max-pool MIN-MARKET-LIQUIDITY) ERR-INVALID-MARKET-PARAMS)
+    (asserts! (<= max-pool MAX-MARKET-LIQUIDITY) ERR-INVALID-MARKET-PARAMS)
 
     ;; Charge market creation fee
     (try! (stx-transfer? MARKET-CREATION-FEE tx-sender CONTRACT-OWNER))
@@ -449,6 +459,7 @@
       ),
       oracle: oracle,
       oracle-outcome: none,
+      max-pool: max-pool,
       possible-outcomes: packed-outcomes,
       total-pool: u0,
       outcome-a-pool: u0,
@@ -553,6 +564,9 @@
       ERR-MARKET-CLOSED
     )
     (asserts! (>= amount MIN-BET-AMOUNT) ERR-BET-TOO-SMALL)
+    (asserts! (<= (+ (get total-pool market) amount) (get max-pool market))
+      ERR-MAX-POOL-EXCEEDED
+    )
     (asserts! (>= num-outcomes u2) ERR-INVALID-MARKET-PARAMS)
 
     ;; Harvest any pending LP fees
@@ -930,6 +944,9 @@
       ERR-INVALID-OUTCOME
     )
     (asserts! (>= amount MIN-BET-AMOUNT) ERR-BET-TOO-SMALL)
+    (asserts! (<= (+ (get total-pool market) amount) (get max-pool market))
+      ERR-MAX-POOL-EXCEEDED
+    )
 
     ;; Transfer STX to contract
     (try! (stx-transfer? amount tx-sender (as-contract tx-sender)))
@@ -1224,6 +1241,7 @@
       settlement-type: (string-ascii 32),
       oracle: (optional principal),
       oracle-outcome: (optional uint),
+      max-pool: uint,
       possible-outcomes: uint,
       total-pool: uint,
       outcome-a-pool: uint,

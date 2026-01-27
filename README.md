@@ -64,6 +64,7 @@ Key parameters:
 - Fee split: 2% platform + 1% creator + 1% LP
 - Minimum bet: 1 STX
 - Minimum liquidity: 5 STX total pool
+- Max pool cap: per-market hard ceiling (configurable)
 - Settlement finality: 6 Bitcoin blocks
 - Challenge window: 6 Bitcoin blocks after settlement
 
@@ -75,6 +76,7 @@ Key parameters:
 - Creator pays 5 STX
 - Sets settlement Bitcoin block height
 - Adds a category tag (stored on-chain)
+- Sets max pool cap (hard ceiling)
 - Chooses binary or multi-outcome format
 
 ### 2) Betting
@@ -165,6 +167,7 @@ pnpm dev
   (description (string-utf8 1024))
   (category (string-ascii 32))
   (oracle (optional principal))
+  (max-pool uint)
   (settlement-burn-height uint))
 
 (create-multi-market
@@ -172,6 +175,7 @@ pnpm dev
   (description (string-utf8 1024))
   (category (string-ascii 32))
   (oracle (optional principal))
+  (max-pool uint)
   (settlement-burn-height uint)
   (enable-outcome-a bool)
   (enable-outcome-b bool)
@@ -238,6 +242,7 @@ Multi-outcome markets use a hash range:
   u"Predict the parity of Bitcoin block hash"
   "crypto"
   none
+  u1000000000
   u880000)
 
 (contract-call? .btc-prediction-market bet-outcome-a u0 u10000000)

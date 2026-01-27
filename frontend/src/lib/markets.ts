@@ -11,6 +11,7 @@ export interface MarketData {
   currentBurnHeight: number;
   settledAtBurnHeight?: number;
   totalPool: number;
+  maxPool?: number;
   outcomeAPoll: number;
   outcomeBPool: number;
   outcomeCPool?: number;
@@ -85,6 +86,7 @@ export const fetchMarket = async (marketId: number, burnHeight: number): Promise
   const oracleAddress = oracle === null ? undefined : String(oracle);
 
   const totalPool = toNumber(value["total-pool"]);
+  const maxPool = value["max-pool"] !== undefined ? toNumber(value["max-pool"]) : undefined;
   const expired = Boolean(value["expired"]);
 
   return {
@@ -97,6 +99,7 @@ export const fetchMarket = async (marketId: number, burnHeight: number): Promise
     currentBurnHeight: burnHeight,
     settledAtBurnHeight,
     totalPool,
+    maxPool,
     outcomeAPoll: toNumber(value["outcome-a-pool"]),
     outcomeBPool: toNumber(value["outcome-b-pool"]),
     outcomeCPool: toNumber(value["outcome-c-pool"]),
