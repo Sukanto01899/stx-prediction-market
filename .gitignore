@@ -11,6 +11,8 @@ frontend/.next/
 .env
 .env.local
 .env.*.local
+bot/.env
+bot/.env.local
 
 # Clarinet
 settings/Mainnet.toml

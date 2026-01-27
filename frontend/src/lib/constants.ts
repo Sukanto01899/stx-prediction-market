@@ -1,11 +1,11 @@
 import { StacksMainnet, StacksTestnet } from "@stacks/network";
 
-// Network configuration - TESTNET DEPLOYED
-export const IS_MAINNET = false;
-export const NETWORK = new StacksTestnet();
+// Network configuration - MAINNET DEPLOYED
+export const IS_MAINNET = true;
+export const NETWORK = new StacksMainnet();
 
-// Contract configuration - TESTNET ADDRESSES
-export const CONTRACT_ADDRESS = "ST1G4ZDXED8XM2XJ4Q4GJ7F4PG4EJQ1KKXVPSAX13";
+// Contract configuration - MAINNET ADDRESSES
+export const CONTRACT_ADDRESS = "SP1K2XGT5RNGT42N49BH936VDF8NXWNZJY15BPV4F";
 export const CONTRACT_NAME = "btc-prediction-market";
 export const TOKEN_CONTRACT_NAME = "prediction-token";
 export const TRAIT_CONTRACT_NAME = "sip-010-trait";
