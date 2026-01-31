@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, AlertCircle, Loader2 } from "lucide-react";
 import { useStacksAuth } from "@/contexts/StacksAuthContext";
 import { openContractCall } from "@stacks/connect";
@@ -9,7 +9,8 @@ import {
   FungibleConditionCode,
   makeStandardSTXPostCondition,
 } from "@stacks/transactions";
-import { NETWORK, CONTRACT_ADDRESS, CONTRACT_NAME } from "@/lib/constants";
+import { NETWORK, CONTRACT_ADDRESS, CONTRACT_NAME, CREATOR_FEE_PERCENT, LP_FEE_PERCENT, PLATFORM_FEE_PERCENT } from "@/lib/constants";
+import { fetchUserPosition } from "@/lib/markets";
 
 interface Market {
   id: number;
@@ -33,6 +34,43 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
   const [amount, setAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<"bet" | "cashout" | "liquidity">(initialMode);
+  const [userPosition, setUserPosition] = useState<{
+    outcomeAAmount: number;
+    outcomeBAmount: number;
+    outcomeCAmount: number;
+    outcomeDAmount: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadPosition = async () => {
+      if (!stxAddress || mode !== "cashout") {
+        if (mounted) setUserPosition(null);
+        return;
+      }
+      try {
+        const position = await fetchUserPosition(market.id, stxAddress);
+        if (mounted) {
+          setUserPosition(
+            position
+              ? {
+                  outcomeAAmount: position.outcomeAAmount,
+                  outcomeBAmount: position.outcomeBAmount,
+                  outcomeCAmount: position.outcomeCAmount,
+                  outcomeDAmount: position.outcomeDAmount,
+                }
+              : null
+          );
+        }
+      } catch {
+        if (mounted) setUserPosition(null);
+      }
+    };
+    loadPosition();
+    return () => {
+      mounted = false;
+    };
+  }, [stxAddress, market.id, mode]);
 
   const getOutcomePool = () => {
     switch (outcome) {
@@ -54,7 +92,7 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
     if (newPool === 0) return 0;
     
     const grossPayout = (betMicroSTX * newTotal) / newPool;
-    const fee = grossPayout * 0.04; // 4% total fees
+    const fee = grossPayout * ((PLATFORM_FEE_PERCENT + CREATOR_FEE_PERCENT + LP_FEE_PERCENT) / 10000);
     const netPayout = grossPayout - fee;
     
     return (netPayout / 1000000).toFixed(2);
@@ -66,9 +104,42 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
     const currentPool = getOutcomePool();
     if (currentPool === 0) return "0.00";
     const grossPayout = (cashMicroSTX * market.totalPool) / currentPool;
-    const fee = grossPayout * 0.04;
+    const fee = grossPayout * ((PLATFORM_FEE_PERCENT + CREATOR_FEE_PERCENT + LP_FEE_PERCENT) / 10000);
     const netPayout = grossPayout - fee;
     return (netPayout / 1000000).toFixed(2);
+  };
+
+  const getUserOutcomeAmount = () => {
+    if (!userPosition) return 0;
+    switch (outcome) {
+      case "A": return userPosition.outcomeAAmount;
+      case "B": return userPosition.outcomeBAmount;
+      case "C": return userPosition.outcomeCAmount;
+      case "D": return userPosition.outcomeDAmount;
+      default: return 0;
+    }
+  };
+
+  const cashoutPreview = () => {
+    const cashAmount = parseFloat(amount) || 0;
+    const cashMicroSTX = cashAmount * 1000000;
+    const currentPool = getOutcomePool();
+    if (currentPool === 0 || cashMicroSTX === 0) {
+      return {
+        gross: 0,
+        fees: 0,
+        net: 0,
+        slippagePct: 0,
+      };
+    }
+    const grossPayout = (cashMicroSTX * market.totalPool) / currentPool;
+    const totalFeeBps = PLATFORM_FEE_PERCENT + CREATOR_FEE_PERCENT + LP_FEE_PERCENT;
+    const fees = (grossPayout * totalFeeBps) / 10000;
+    const net = grossPayout - fees;
+    const slippagePct = cashMicroSTX > 0
+      ? ((grossPayout - cashMicroSTX) / cashMicroSTX) * 100
+      : 0;
+    return { gross: grossPayout, fees, net, slippagePct };
   };
 
   const getFunctionName = () => {
@@ -246,6 +317,33 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
                 <span className="text-slate-400">Fees:</span>
                 <span className="text-slate-300">2% platform + 1% creator + 1% LP</span>
               </div>
+              {mode === "cashout" && (() => {
+                const preview = cashoutPreview();
+                const slippageLabel = preview.slippagePct >= 0 ? "Premium" : "Slippage";
+                return (
+                  <div className="mt-3 space-y-1 text-xs text-slate-300">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Gross payout:</span>
+                      <span>{(preview.gross / 1000000).toFixed(4)} STX</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total fees:</span>
+                      <span>{(preview.fees / 1000000).toFixed(4)} STX</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Net payout:</span>
+                      <span className="text-amber-300">{(preview.net / 1000000).toFixed(4)} STX</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">{slippageLabel} vs stake:</span>
+                      <span className={preview.slippagePct >= 0 ? "text-emerald-300" : "text-rose-300"}>
+                        {preview.slippagePct >= 0 ? "+" : ""}
+                        {preview.slippagePct.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -255,6 +353,8 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
             <p>
               {mode === "liquidity"
                 ? "Liquidity providers earn a share of fees. Liquidity can be withdrawn before settlement."
+                : mode === "cashout"
+                ? `You can cash out up to ${((getUserOutcomeAmount() || 0) / 1000000).toLocaleString()} STX on this outcome.`
                 : "This market will settle based on the Bitcoin block hash at the specified block height. Outcomes are determined trustlessly."}
             </p>
           </div>
@@ -262,7 +362,12 @@ export function BetModal({ market, outcome, initialMode = "bet", onClose }: BetM
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!amount || parseFloat(amount) < 0.1 || isSubmitting}
+            disabled={
+              !amount ||
+              parseFloat(amount) < 0.1 ||
+              isSubmitting ||
+              (mode === "cashout" && parseFloat(amount) * 1000000 > getUserOutcomeAmount())
+            }
             className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
