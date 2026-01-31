@@ -13,6 +13,9 @@ export const TRAIT_CONTRACT_NAME = "sip-010-trait";
 // Fee constants (matching contract)
 export const MARKET_CREATION_FEE = 5000000; // 5 STX in microSTX
 export const PLATFORM_FEE_PERCENT = 200; // 2% in basis points
+export const CREATOR_FEE_PERCENT = 100; // 1% in basis points
+export const LP_FEE_PERCENT = 100; // 1% in basis points
+export const LP_FEE_PRECISION = 1000000;
 export const MIN_BET_AMOUNT = 1000000; // 1 STX minimum bet
 
 // Outcome constants

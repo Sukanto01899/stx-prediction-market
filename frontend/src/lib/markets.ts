@@ -1,5 +1,5 @@
 import { CONTRACT_ADDRESS, CONTRACT_NAME, STACKS_API_URL } from "./constants";
-import { deserializeCV, serializeCV, uintCV, cvToValue } from "@stacks/transactions";
+import { deserializeCV, serializeCV, uintCV, cvToValue, standardPrincipalCV } from "@stacks/transactions";
 
 export interface MarketData {
   id: number;
@@ -10,6 +10,8 @@ export interface MarketData {
   settlementHeight: number;
   currentBurnHeight: number;
   settledAtBurnHeight?: number;
+  winningOutcome?: number;
+  possibleOutcomes: number;
   totalPool: number;
   maxPool?: number;
   outcomeAPoll: number;
@@ -23,6 +25,25 @@ export interface MarketData {
   oracleAddress?: string;
   lpLiquidity?: number;
   lpClaimableFees?: number;
+}
+
+export interface UserPositionData {
+  outcomeAAmount: number;
+  outcomeBAmount: number;
+  outcomeCAmount: number;
+  outcomeDAmount: number;
+  totalInvested: number;
+  claimed: boolean;
+}
+
+export interface LpPositionData {
+  liquidity: number;
+  rewardDebt: number;
+}
+
+export interface LpStateData {
+  totalLiquidity: number;
+  accFeePerLiquidity: number;
 }
 
 const hexToBytes = (hex: string) => {
@@ -82,6 +103,8 @@ export const fetchMarket = async (marketId: number, burnHeight: number): Promise
 
   const settledAt = value["settled-at-burn-height"];
   const settledAtBurnHeight = settledAt === null ? undefined : toNumber(settledAt);
+  const winningOutcomeRaw = value["winning-outcome"];
+  const winningOutcome = winningOutcomeRaw === null ? undefined : toNumber(winningOutcomeRaw);
   const oracle = value["oracle"];
   const oracleAddress = oracle === null ? undefined : String(oracle);
 
@@ -98,6 +121,8 @@ export const fetchMarket = async (marketId: number, burnHeight: number): Promise
     settlementHeight: toNumber(value["settlement-burn-height"]),
     currentBurnHeight: burnHeight,
     settledAtBurnHeight,
+    winningOutcome,
+    possibleOutcomes,
     totalPool,
     maxPool,
     outcomeAPoll: toNumber(value["outcome-a-pool"]),
@@ -121,4 +146,52 @@ export const fetchMarkets = async (): Promise<MarketData[]> => {
   const ids = Array.from({ length: count }, (_, i) => i);
   const markets = await Promise.all(ids.map((id) => fetchMarket(id, burnHeight)));
   return markets.filter((market): market is MarketData => market !== null);
+};
+
+export const fetchUserPosition = async (
+  marketId: number,
+  user: string
+): Promise<UserPositionData | null> => {
+  const value = await readOnlyCall("get-user-position", [
+    serializeCV(uintCV(marketId)),
+    serializeCV(standardPrincipalCV(user)),
+  ]);
+  if (!value) return null;
+  return {
+    outcomeAAmount: toNumber(value["outcome-a-amount"]),
+    outcomeBAmount: toNumber(value["outcome-b-amount"]),
+    outcomeCAmount: toNumber(value["outcome-c-amount"]),
+    outcomeDAmount: toNumber(value["outcome-d-amount"]),
+    totalInvested: toNumber(value["total-invested"]),
+    claimed: Boolean(value["claimed"]),
+  };
+};
+
+export const fetchLpPosition = async (
+  marketId: number,
+  user: string
+): Promise<LpPositionData | null> => {
+  const value = await readOnlyCall("get-lp-position", [
+    serializeCV(uintCV(marketId)),
+    serializeCV(standardPrincipalCV(user)),
+  ]);
+  if (!value) return null;
+  return {
+    liquidity: toNumber(value["liquidity"]),
+    rewardDebt: toNumber(value["reward-debt"]),
+  };
+};
+
+export const fetchLpState = async (marketId: number): Promise<LpStateData | null> => {
+  const value = await readOnlyCall("get-lp-state", [serializeCV(uintCV(marketId))]);
+  if (!value) return null;
+  return {
+    totalLiquidity: toNumber(value["total-liquidity"]),
+    accFeePerLiquidity: toNumber(value["acc-fee-per-liquidity"]),
+  };
+};
+
+export const fetchIsClaimable = async (marketId: number): Promise<boolean> => {
+  const value = await readOnlyCall("is-claimable", [serializeCV(uintCV(marketId))]);
+  return Boolean(value);
 };
