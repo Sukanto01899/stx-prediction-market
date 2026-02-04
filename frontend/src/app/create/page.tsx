@@ -25,27 +25,41 @@ import { AlertCircle, Bitcoin, Calendar, DollarSign } from "lucide-react";
 
 export default function CreateMarketPage() {
   const { isConnected, stxAddress } = useStacksAuth();
-  const [marketType, setMarketType] = useState<"binary" | "multi">("binary");
-  const [question, setQuestion] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("general");
-  const [customCategory, setCustomCategory] = useState("");
-  const [maxPoolCap, setMaxPoolCap] = useState("5000");
-  const [settlementBlock, setSettlementBlock] = useState("");
-  const [oracleAddress, setOracleAddress] = useState("");
+  const defaultMarket = {
+    marketType: "binary" as const,
+    question: "Will BTC close above $85k by end of Q2?",
+    description:
+      "Market resolves at the specified Bitcoin block height. Reference price uses major exchange indices.",
+    category: "crypto",
+    customCategory: "",
+    maxPoolCap: "10000",
+    settlementBlock: "900000",
+    oracleAddress: "",
+  };
+
+  const [marketType, setMarketType] = useState<"binary" | "multi">(
+    defaultMarket.marketType
+  );
+  const [question, setQuestion] = useState(defaultMarket.question);
+  const [description, setDescription] = useState(defaultMarket.description);
+  const [category, setCategory] = useState(defaultMarket.category);
+  const [customCategory, setCustomCategory] = useState(defaultMarket.customCategory);
+  const [maxPoolCap, setMaxPoolCap] = useState(defaultMarket.maxPoolCap);
+  const [settlementBlock, setSettlementBlock] = useState(
+    defaultMarket.settlementBlock
+  );
+  const [oracleAddress, setOracleAddress] = useState(defaultMarket.oracleAddress);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const applyDemoData = () => {
-    setMarketType("binary");
-    setQuestion("Will BTC close above $85k by end of Q2?");
-    setDescription(
-      "Market resolves at the specified Bitcoin block height. Reference price uses major exchange indices."
-    );
-    setCategory("crypto");
-    setCustomCategory("");
-    setMaxPoolCap("10000");
-    setSettlementBlock("900000");
-    setOracleAddress("");
+    setMarketType(defaultMarket.marketType);
+    setQuestion(defaultMarket.question);
+    setDescription(defaultMarket.description);
+    setCategory(defaultMarket.category);
+    setCustomCategory(defaultMarket.customCategory);
+    setMaxPoolCap(defaultMarket.maxPoolCap);
+    setSettlementBlock(defaultMarket.settlementBlock);
+    setOracleAddress(defaultMarket.oracleAddress);
   };
 
   const handleCreateMarket = async () => {
@@ -105,7 +119,7 @@ export default function CreateMarketPage() {
             boolCV(true),
           ];
 
-      // Add post condition for the 5 STX fee
+      // Add post condition for the creation fee
       const postConditions = [
         makeStandardSTXPostCondition(
           stxAddress,
@@ -125,13 +139,14 @@ export default function CreateMarketPage() {
         onFinish: (data) => {
           console.log("Transaction submitted:", data);
           alert(`Market creation submitted! TX: ${data.txId}`);
-          setQuestion("");
-          setDescription("");
-          setCategory("general");
-          setCustomCategory("");
-          setMaxPoolCap("5000");
-          setOracleAddress("");
-          setSettlementBlock("");
+          setMarketType(defaultMarket.marketType);
+          setQuestion(defaultMarket.question);
+          setDescription(defaultMarket.description);
+          setCategory(defaultMarket.category);
+          setCustomCategory(defaultMarket.customCategory);
+          setMaxPoolCap(defaultMarket.maxPoolCap);
+          setOracleAddress(defaultMarket.oracleAddress);
+          setSettlementBlock(defaultMarket.settlementBlock);
         },
         onCancel: () => {
           console.log("Transaction cancelled");
@@ -343,7 +358,7 @@ export default function CreateMarketPage() {
                 disabled={isSubmitting || !question || !settlementBlock}
                 className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-amber-400 px-6 py-4 text-base font-semibold text-slate-950 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:from-slate-700 disabled:via-slate-700 disabled:to-slate-700"
               >
-                {isSubmitting ? "Creating Market..." : "Create Market (5 STX)"}
+                {isSubmitting ? "Creating Market..." : "Create Market (0.0001 STX)"}
               </button>
             </div>
           </section>
@@ -356,7 +371,7 @@ export default function CreateMarketPage() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Network Fee</p>
-                  <p className="text-lg font-semibold">5 STX creation fee</p>
+                  <p className="text-lg font-semibold">0.0001 STX creation fee</p>
                 </div>
               </div>
               <p className="text-sm text-slate-400 mt-4">

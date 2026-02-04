@@ -6,12 +6,12 @@ export const NETWORK = new StacksMainnet();
 
 // Contract configuration - MAINNET ADDRESSES
 export const CONTRACT_ADDRESS = "SP1K2XGT5RNGT42N49BH936VDF8NXWNZJY15BPV4F";
-export const CONTRACT_NAME = "btc-prediction-market";
-export const TOKEN_CONTRACT_NAME = "prediction-token";
-export const TRAIT_CONTRACT_NAME = "sip-010-trait";
+export const CONTRACT_NAME = "btc-prediction-market-v3";
+export const TOKEN_CONTRACT_NAME = "prediction-token-v3";
+export const TRAIT_CONTRACT_NAME = "sip-010-trait-v3";
 
 // Fee constants (matching contract)
-export const MARKET_CREATION_FEE = 5000000; // 5 STX in microSTX
+export const MARKET_CREATION_FEE = 100; // 0.0001 STX in microSTX
 export const PLATFORM_FEE_PERCENT = 200; // 2% in basis points
 export const CREATOR_FEE_PERCENT = 100; // 1% in basis points
 export const LP_FEE_PERCENT = 100; // 1% in basis points
