@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { useStacksAuth } from "@/contexts/StacksAuthContext";
-import { 
-  CONTRACT_ADDRESS, 
-  CONTRACT_NAME, 
+import {
+  CONTRACT_ADDRESS,
+  CONTRACT_NAME,
   MARKET_CREATION_FEE,
   MARKET_CATEGORIES,
-  NETWORK 
+  NETWORK,
 } from "@/lib/constants";
 import { openContractCall } from "@stacks/connect";
-import { 
-  uintCV, 
+import {
+  uintCV,
   stringAsciiCV,
   principalCV,
   noneCV,
@@ -19,7 +19,7 @@ import {
   boolCV,
   PostConditionMode,
   makeStandardSTXPostCondition,
-  FungibleConditionCode
+  FungibleConditionCode,
 } from "@stacks/transactions";
 import { AlertCircle, Bitcoin, Calendar, DollarSign } from "lucide-react";
 
@@ -27,7 +27,7 @@ export default function CreateMarketPage() {
   const { isConnected, stxAddress } = useStacksAuth();
   const defaultMarket = {
     marketType: "binary" as const,
-    question: "Will BTC close above $85k by end of Q2?",
+    question: "Will BTC close above $70k by end of Q2?",
     description:
       "Market resolves at the specified Bitcoin block height. Reference price uses major exchange indices.",
     category: "crypto",
@@ -38,17 +38,21 @@ export default function CreateMarketPage() {
   };
 
   const [marketType, setMarketType] = useState<"binary" | "multi">(
-    defaultMarket.marketType
+    defaultMarket.marketType,
   );
   const [question, setQuestion] = useState(defaultMarket.question);
   const [description, setDescription] = useState(defaultMarket.description);
   const [category, setCategory] = useState(defaultMarket.category);
-  const [customCategory, setCustomCategory] = useState(defaultMarket.customCategory);
+  const [customCategory, setCustomCategory] = useState(
+    defaultMarket.customCategory,
+  );
   const [maxPoolCap, setMaxPoolCap] = useState(defaultMarket.maxPoolCap);
   const [settlementBlock, setSettlementBlock] = useState(
-    defaultMarket.settlementBlock
+    defaultMarket.settlementBlock,
   );
-  const [oracleAddress, setOracleAddress] = useState(defaultMarket.oracleAddress);
+  const [oracleAddress, setOracleAddress] = useState(
+    defaultMarket.oracleAddress,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const applyDemoData = () => {
@@ -76,11 +80,13 @@ export default function CreateMarketPage() {
     setIsSubmitting(true);
 
     try {
-      const functionName = marketType === "binary" 
-        ? "create-binary-market" 
-        : "create-multi-market";
+      const functionName =
+        marketType === "binary"
+          ? "create-binary-market"
+          : "create-multi-market";
 
-      const resolvedCategory = category === "custom" ? customCategory : category;
+      const resolvedCategory =
+        category === "custom" ? customCategory : category;
       const sanitizedCategory = (resolvedCategory || "general")
         .toLowerCase()
         .replace(/[^a-z0-9-_ ]/g, "")
@@ -97,34 +103,35 @@ export default function CreateMarketPage() {
         return;
       }
 
-      const functionArgs = marketType === "binary"
-        ? [
-            stringAsciiCV(question.slice(0, 100)),
-            stringAsciiCV(description.slice(0, 500) || "No description"),
-            stringAsciiCV(sanitizedCategory || "general"),
-            oracleArg,
-            uintCV(maxPoolMicro),
-            uintCV(parseInt(settlementBlock)),
-          ]
-        : [
-            stringAsciiCV(question.slice(0, 100)),
-            stringAsciiCV(description.slice(0, 500) || "No description"),
-            stringAsciiCV(sanitizedCategory || "general"),
-            oracleArg,
-            uintCV(maxPoolMicro),
-            uintCV(parseInt(settlementBlock)),
-            boolCV(true),
-            boolCV(true),
-            boolCV(true),
-            boolCV(true),
-          ];
+      const functionArgs =
+        marketType === "binary"
+          ? [
+              stringAsciiCV(question.slice(0, 100)),
+              stringAsciiCV(description.slice(0, 500) || "No description"),
+              stringAsciiCV(sanitizedCategory || "general"),
+              oracleArg,
+              uintCV(maxPoolMicro),
+              uintCV(parseInt(settlementBlock)),
+            ]
+          : [
+              stringAsciiCV(question.slice(0, 100)),
+              stringAsciiCV(description.slice(0, 500) || "No description"),
+              stringAsciiCV(sanitizedCategory || "general"),
+              oracleArg,
+              uintCV(maxPoolMicro),
+              uintCV(parseInt(settlementBlock)),
+              boolCV(true),
+              boolCV(true),
+              boolCV(true),
+              boolCV(true),
+            ];
 
       // Add post condition for the creation fee
       const postConditions = [
         makeStandardSTXPostCondition(
           stxAddress,
           FungibleConditionCode.Equal,
-          MARKET_CREATION_FEE
+          MARKET_CREATION_FEE,
         ),
       ];
 
@@ -168,9 +175,12 @@ export default function CreateMarketPage() {
         <div className="relative max-w-2xl mx-auto font-display text-slate-100">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-10 text-center shadow-[0_20px_60px_-40px_rgba(15,23,42,0.8)] backdrop-blur">
             <AlertCircle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
-            <h2 className="font-serif-display text-3xl font-semibold mb-2">Connect Wallet</h2>
+            <h2 className="font-serif-display text-3xl font-semibold mb-2">
+              Connect Wallet
+            </h2>
             <p className="text-slate-300">
-              Connect your Stacks wallet to create a professionally governed prediction market.
+              Connect your Stacks wallet to create a professionally governed
+              prediction market.
             </p>
           </div>
         </div>
@@ -191,8 +201,9 @@ export default function CreateMarketPage() {
             Launch a high-integrity prediction market
           </h1>
           <p className="text-slate-300 mt-3 max-w-2xl">
-            Define the question, select the outcome structure, and lock in the settlement block. We’ll handle
-            the on-chain creation and fee enforcement.
+            Define the question, select the outcome structure, and lock in the
+            settlement block. We’ll handle the on-chain creation and fee
+            enforcement.
           </p>
           <div className="mt-5">
             <button
@@ -222,7 +233,9 @@ export default function CreateMarketPage() {
                     }`}
                   >
                     <h3 className="font-serif-display text-lg">Binary</h3>
-                    <p className="text-sm text-slate-400 mt-1">Yes/No, winner-takes-all</p>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Yes/No, winner-takes-all
+                    </p>
                   </button>
                   <button
                     onClick={() => setMarketType("multi")}
@@ -232,8 +245,12 @@ export default function CreateMarketPage() {
                         : "border-slate-800 bg-slate-950/30 hover:border-slate-600"
                     }`}
                   >
-                    <h3 className="font-serif-display text-lg">Multi-Outcome</h3>
-                    <p className="text-sm text-slate-400 mt-1">Up to 4 possible outcomes</p>
+                    <h3 className="font-serif-display text-lg">
+                      Multi-Outcome
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Up to 4 possible outcomes
+                    </p>
                   </button>
                 </div>
               </div>
@@ -250,7 +267,9 @@ export default function CreateMarketPage() {
                   maxLength={100}
                   className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
                 />
-                <p className="text-xs text-slate-500 mt-2">{question.length}/100 characters</p>
+                <p className="text-xs text-slate-500 mt-2">
+                  {question.length}/100 characters
+                </p>
               </div>
 
               <div>
@@ -265,7 +284,9 @@ export default function CreateMarketPage() {
                   rows={4}
                   className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
                 />
-                <p className="text-xs text-slate-500 mt-2">{description.length}/500 characters</p>
+                <p className="text-xs text-slate-500 mt-2">
+                  {description.length}/500 characters
+                </p>
               </div>
 
               <div>
@@ -295,7 +316,9 @@ export default function CreateMarketPage() {
                     />
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-2">32 chars max. Stored on-chain.</p>
+                <p className="text-xs text-slate-500 mt-2">
+                  32 chars max. Stored on-chain.
+                </p>
               </div>
 
               <div>
@@ -331,7 +354,8 @@ export default function CreateMarketPage() {
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
-                  The market resolves using the hash of this Bitcoin block height.
+                  The market resolves using the hash of this Bitcoin block
+                  height.
                 </p>
               </div>
 
@@ -347,7 +371,8 @@ export default function CreateMarketPage() {
                   className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-base text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
                 />
                 <p className="text-xs text-slate-500 mt-2">
-                  If set, settlement uses oracle outcome instead of Bitcoin hash.
+                  If set, settlement uses oracle outcome instead of Bitcoin
+                  hash.
                 </p>
               </div>
             </div>
@@ -358,7 +383,9 @@ export default function CreateMarketPage() {
                 disabled={isSubmitting || !question || !settlementBlock}
                 className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-amber-400 px-6 py-4 text-base font-semibold text-slate-950 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:from-slate-700 disabled:via-slate-700 disabled:to-slate-700"
               >
-                {isSubmitting ? "Creating Market..." : "Create Market (0.0001 STX)"}
+                {isSubmitting
+                  ? "Creating Market..."
+                  : "Create Market (0.0001 STX)"}
               </button>
             </div>
           </section>
@@ -370,12 +397,17 @@ export default function CreateMarketPage() {
                   <DollarSign className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Network Fee</p>
-                  <p className="text-lg font-semibold">0.0001 STX creation fee</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Network Fee
+                  </p>
+                  <p className="text-lg font-semibold">
+                    0.0001 STX creation fee
+                  </p>
                 </div>
               </div>
               <p className="text-sm text-slate-400 mt-4">
-                The fee is enforced on-chain to reduce spam and align governance incentives.
+                The fee is enforced on-chain to reduce spam and align governance
+                incentives.
               </p>
             </div>
 
@@ -385,8 +417,12 @@ export default function CreateMarketPage() {
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Timing</p>
-                  <p className="text-lg font-semibold">Choose a safe block height</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Timing
+                  </p>
+                  <p className="text-lg font-semibold">
+                    Choose a safe block height
+                  </p>
                 </div>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-400">
@@ -397,15 +433,20 @@ export default function CreateMarketPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Live Preview</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Live Preview
+              </p>
               <h3 className="font-serif-display text-lg mt-3">
                 {question || "Market question will appear here"}
               </h3>
               <p className="text-sm text-slate-400 mt-3">
-                {description || "Add a description to help traders understand the rules and data sources."}
+                {description ||
+                  "Add a description to help traders understand the rules and data sources."}
               </p>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                {marketType === "binary" ? "Binary Market" : "Multi-Outcome Market"}
+                {marketType === "binary"
+                  ? "Binary Market"
+                  : "Multi-Outcome Market"}
               </div>
             </div>
           </aside>
@@ -414,5 +455,3 @@ export default function CreateMarketPage() {
     </div>
   );
 }
-
-
