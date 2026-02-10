@@ -1,7 +1,7 @@
 ;; SIP-010 Fungible Token Trait
 ;; Standard interface for fungible tokens on Stacks
 
-(define-trait sip-010-trait
+(define-trait sip-010-trait-v4
   (
     ;; Transfer tokens to recipient
     (transfer (uint principal principal (optional (buff 34))) (response bool uint))

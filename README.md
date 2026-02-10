@@ -21,8 +21,8 @@ Key ideas:
 stx-prediction-market/
 ├── Clarinet.toml                # Clarinet configuration
 ├── contracts/
-│   ├── btc-prediction-market.clar   # Core prediction market contract
-│   └── prediction-token.clar        # SIP-010 reward token
+│   ├── stx-pred-market-v3.clar      # Core prediction market contract
+│   └── pred-token-v3.clar           # SIP-010 reward token
 ├── tests/
 │   └── btc-prediction-market.test.ts
 ├── frontend/                    # Next.js frontend
@@ -41,7 +41,7 @@ stx-prediction-market/
 
 | Action | Fee |
 |--------|-----|
-| Market Creation | 5 STX |
+| Market Creation | 0.0001 STX |
 | Winning Payouts | 2% platform fee + 1% creator fee + 1% LP fee |
 | Minimum Bet | 1 STX |
 
@@ -50,9 +50,9 @@ stx-prediction-market/
 ## Contract Details
 
 Contracts:
-- `stx-pred-market.clar` - core market logic
-- `pred-token.clar` - SIP-010 reward token
-- `sip-010-trait.clar` - SIP-010 trait definition
+- `stx-pred-market-v3.clar` - core market logic
+- `pred-token-v3.clar` - SIP-010 reward token
+- `sip-010-trait-v3.clar` - SIP-010 trait definition
 
 Settlement types:
 - `hash-even-odd` - binary settlement from Bitcoin hash parity
@@ -60,7 +60,7 @@ Settlement types:
 - `oracle` - oracle-set outcome for real-world events
 
 Key parameters:
-- Market creation fee: 5 STX
+- Market creation fee: 0.0001 STX
 - Fee split: 2% platform + 1% creator + 1% LP
 - Minimum bet: 1 STX
 - Minimum liquidity: 5 STX total pool
@@ -73,7 +73,7 @@ Key parameters:
 ## How It Works
 
 ### 1) Market Creation
-- Creator pays 5 STX
+- Creator pays 0.0001 STX
 - Sets settlement Bitcoin block height
 - Adds a category tag (stored on-chain)
 - Sets max pool cap (hard ceiling)
@@ -237,7 +237,7 @@ Multi-outcome markets use a hash range:
 ## Example (Clarinet Console)
 
 ```clarity
-(contract-call? .btc-prediction-market create-binary-market 
+(contract-call? .btc-prediction-market-v3 create-binary-market 
   u"Will BTC block 880000 have even hash?" 
   u"Predict the parity of Bitcoin block hash"
   "crypto"
@@ -245,10 +245,10 @@ Multi-outcome markets use a hash range:
   u1000000000
   u880000)
 
-(contract-call? .btc-prediction-market bet-outcome-a u0 u10000000)
-(contract-call? .btc-prediction-market get-market-odds u0)
-(contract-call? .btc-prediction-market settle-market u0)
-(contract-call? .btc-prediction-market claim-winnings u0)
+(contract-call? .btc-prediction-market-v3 bet-outcome-a u0 u10000000)
+(contract-call? .btc-prediction-market-v3 get-market-odds u0)
+(contract-call? .btc-prediction-market-v3 settle-market u0)
+(contract-call? .btc-prediction-market-v3 claim-winnings u0)
 ```
 
 ---

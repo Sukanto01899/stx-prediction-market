@@ -3,7 +3,7 @@
 ;; Uses Clarity 4 features: get-burn-block-info?, tenure-height, bitwise operations
 
 ;; Import SIP-010 trait for token interactions
-(use-trait sip-010-trait .sip-010-trait.sip-010-trait)
+(use-trait sip-010-trait-v4 .sip-010-trait-v4.sip-010-trait-v4)
 
 ;; =============================================
 ;; CONSTANTS
@@ -1043,7 +1043,9 @@
     ;; Validate settlement
     (asserts! (not (get settled market)) ERR-MARKET-ALREADY-SETTLED)
     (asserts! (not (get expired market)) ERR-MARKET-EXPIRED)
-    (asserts! (>= (get total-pool market) MIN-MARKET-LIQUIDITY) ERR-MARKET-EXPIRED)
+    (asserts! (>= (get total-pool market) MIN-MARKET-LIQUIDITY)
+      ERR-MARKET-EXPIRED
+    )
     (asserts!
       (>= current-burn-height (+ settlement-height BLOCKS-BEFORE-SETTLEMENT))
       ERR-MARKET-NOT-READY-TO-SETTLE
@@ -1167,7 +1169,10 @@
   (let (
       (market (unwrap! (map-get? markets market-id) ERR-MARKET-NOT-FOUND))
       (position (unwrap!
-        (map-get? user-positions { market-id: market-id, user: tx-sender })
+        (map-get? user-positions {
+          market-id: market-id,
+          user: tx-sender,
+        })
         ERR-NO-POSITION
       ))
     )
@@ -1182,15 +1187,20 @@
       )
       (asserts! (> refund u0) ERR-NO-POSITION)
 
-      (map-set markets market-id (merge market {
-        total-pool: (- (get total-pool market) refund),
-        outcome-a-pool: (- pool-a (get outcome-a-amount position)),
-        outcome-b-pool: (- pool-b (get outcome-b-amount position)),
-        outcome-c-pool: (- pool-c (get outcome-c-amount position)),
-        outcome-d-pool: (- pool-d (get outcome-d-amount position)),
-      }))
+      (map-set markets market-id
+        (merge market {
+          total-pool: (- (get total-pool market) refund),
+          outcome-a-pool: (- pool-a (get outcome-a-amount position)),
+          outcome-b-pool: (- pool-b (get outcome-b-amount position)),
+          outcome-c-pool: (- pool-c (get outcome-c-amount position)),
+          outcome-d-pool: (- pool-d (get outcome-d-amount position)),
+        })
+      )
 
-      (map-set user-positions { market-id: market-id, user: tx-sender } {
+      (map-set user-positions {
+        market-id: market-id,
+        user: tx-sender,
+      } {
         outcome-a-amount: u0,
         outcome-b-amount: u0,
         outcome-c-amount: u0,

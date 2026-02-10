@@ -6,22 +6,22 @@ telemetry = false
 cache_dir = "./.cache"
 requirements = []
 
-[contracts.sip-010-trait]
-path = "contracts/sip-010-trait.clar"
+[contracts.sip-010-trait-v4]
+path = "contracts/sip-010-trait-v4.clar"
 clarity_version = 3
 epoch = 3.0
 
-[contracts.btc-prediction-market]
-path = "contracts/stx-pred-market.clar"
+[contracts.btc-prediction-market-v4]
+path = "contracts/stx-pred-market-v4.clar"
 clarity_version = 3
 epoch = 3.0
-depends_on = ["sip-010-trait"]
+depends_on = ["sip-010-trait-v4"]
 
-[contracts.prediction-token]
-path = "contracts/pred-token.clar"
+[contracts.prediction-token-v4]
+path = "contracts/pred-token-v4.clar"
 clarity_version = 3
 epoch = 3.0
-depends_on = ["sip-010-trait"]
+depends_on = ["sip-010-trait-v4"]
 
 [repl.analysis]
 passes = ["check_checker"]

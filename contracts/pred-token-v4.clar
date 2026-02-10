@@ -1,7 +1,7 @@
 ;; Prediction Token (PMT) - SIP-010 Fungible Token
 ;; Rewards token for the Bitcoin Prediction Market platform
 
-(impl-trait .sip-010-trait.sip-010-trait)
+(impl-trait .sip-010-trait-v4.sip-010-trait-v4)
 
 ;; =============================================
 ;; CONSTANTS
@@ -29,19 +29,31 @@
 (define-data-var token-uri (optional (string-utf8 256)) TOKEN-URI)
 
 ;; Authorized minters (prediction market contract)
-(define-map authorized-minters principal bool)
+(define-map authorized-minters
+  principal
+  bool
+)
 
 ;; =============================================
 ;; SIP-010 IMPLEMENTATION
 ;; =============================================
 
 ;; Transfer tokens
-(define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
+(define-public (transfer
+    (amount uint)
+    (sender principal)
+    (recipient principal)
+    (memo (optional (buff 34)))
+  )
   (begin
     (asserts! (is-eq tx-sender sender) ERR-NOT-TOKEN-OWNER)
     (try! (ft-transfer? prediction-token amount sender recipient))
-    (match memo to-print (print to-print) 0x)
-    (ok true))
+    (match memo
+      to-print (print to-print)
+      0x
+    )
+    (ok true)
+  )
 )
 
 ;; Get token name
@@ -85,22 +97,36 @@
 ;; =============================================
 
 ;; Mint tokens (only by authorized contracts/owner)
-(define-public (mint (amount uint) (recipient principal))
+(define-public (mint
+    (amount uint)
+    (recipient principal)
+  )
   (begin
-    (asserts! (or (is-eq tx-sender CONTRACT-OWNER) 
-                  (default-to false (map-get? authorized-minters tx-sender))) 
-              ERR-NOT-AUTHORIZED)
-    (asserts! (<= (+ (var-get total-supply) amount) MAX-SUPPLY) ERR-NOT-AUTHORIZED)
+    (asserts!
+      (or
+        (is-eq tx-sender CONTRACT-OWNER)
+        (default-to false (map-get? authorized-minters tx-sender))
+      )
+      ERR-NOT-AUTHORIZED
+    )
+    (asserts! (<= (+ (var-get total-supply) amount) MAX-SUPPLY)
+      ERR-NOT-AUTHORIZED
+    )
     (var-set total-supply (+ (var-get total-supply) amount))
-    (ft-mint? prediction-token amount recipient))
+    (ft-mint? prediction-token amount recipient)
+  )
 )
 
 ;; Burn tokens
-(define-public (burn (amount uint) (owner principal))
+(define-public (burn
+    (amount uint)
+    (owner principal)
+  )
   (begin
     (asserts! (is-eq tx-sender owner) ERR-NOT-TOKEN-OWNER)
     (var-set total-supply (- (var-get total-supply) amount))
-    (ft-burn? prediction-token amount owner))
+    (ft-burn? prediction-token amount owner)
+  )
 )
 
 ;; =============================================
@@ -111,14 +137,16 @@
 (define-public (add-minter (minter principal))
   (begin
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
-    (ok (map-set authorized-minters minter true)))
+    (ok (map-set authorized-minters minter true))
+  )
 )
 
 ;; Remove authorized minter
 (define-public (remove-minter (minter principal))
   (begin
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
-    (ok (map-delete authorized-minters minter)))
+    (ok (map-delete authorized-minters minter))
+  )
 )
 
 ;; Check if minter is authorized
@@ -130,7 +158,8 @@
 (define-public (set-token-uri (new-uri (optional (string-utf8 256))))
   (begin
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
-    (ok (var-set token-uri new-uri)))
+    (ok (var-set token-uri new-uri))
+  )
 )
 
 ;; =============================================
@@ -138,23 +167,42 @@
 ;; =============================================
 
 ;; Reward users for participating (to be called by prediction market contract)
-(define-public (reward-participant (recipient principal) (amount uint))
+(define-public (reward-participant
+    (recipient principal)
+    (amount uint)
+  )
   (begin
-    (asserts! (or (is-eq tx-sender CONTRACT-OWNER)
-                  (default-to false (map-get? authorized-minters tx-sender)))
-              ERR-NOT-AUTHORIZED)
-    (mint amount recipient))
+    (asserts!
+      (or
+        (is-eq tx-sender CONTRACT-OWNER)
+        (default-to false (map-get? authorized-minters tx-sender))
+      )
+      ERR-NOT-AUTHORIZED
+    )
+    (mint amount recipient)
+  )
 )
 
 ;; Batch reward multiple users
-(define-public (batch-reward (recipients (list 50 { user: principal, amount: uint })))
+(define-public (batch-reward (recipients (list 50 {
+  user: principal,
+  amount: uint,
+})))
   (begin
-    (asserts! (or (is-eq tx-sender CONTRACT-OWNER)
-                  (default-to false (map-get? authorized-minters tx-sender)))
-              ERR-NOT-AUTHORIZED)
-    (ok (map reward-single recipients)))
+    (asserts!
+      (or
+        (is-eq tx-sender CONTRACT-OWNER)
+        (default-to false (map-get? authorized-minters tx-sender))
+      )
+      ERR-NOT-AUTHORIZED
+    )
+    (ok (map reward-single recipients))
+  )
 )
 
-(define-private (reward-single (recipient { user: principal, amount: uint }))
+(define-private (reward-single (recipient {
+  user: principal,
+  amount: uint,
+}))
   (mint (get amount recipient) (get user recipient))
 )
