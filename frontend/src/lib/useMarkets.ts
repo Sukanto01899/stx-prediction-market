@@ -21,7 +21,9 @@ export const useMarkets = (pollMs = 60000) => {
         }
       } catch (err) {
         if (mounted) {
-          setError(err instanceof Error ? err.message : "Failed to load markets");
+          setError(
+            err instanceof Error ? err.message : "Failed to load market data",
+          );
         }
       } finally {
         if (mounted) setLoading(false);
