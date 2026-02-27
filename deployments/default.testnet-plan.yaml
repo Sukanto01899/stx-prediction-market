@@ -9,24 +9,24 @@ plan:
     - id: 0
       transactions:
         - contract-publish:
-            contract-name: sip-010-trait-v4
+            contract-name: sip-010-trait-v5
             expected-sender: ST1K2XGT5RNGT42N49BH936VDF8NXWNZJY0N432CM
             cost: 7320
-            path: "contracts\\sip-010-trait-v4.clar"
+            path: "contracts\\sip-010-trait-v5.clar"
             anchor-block-only: true
             clarity-version: 3
         - contract-publish:
-            contract-name: btc-prediction-market-v4
+            contract-name: btc-prediction-market-v5
             expected-sender: ST1K2XGT5RNGT42N49BH936VDF8NXWNZJY0N432CM
             cost: 494380
-            path: "contracts\\stx-pred-market-v4.clar"
+            path: "contracts\\stx-pred-market-v5.clar"
             anchor-block-only: true
             clarity-version: 3
         - contract-publish:
-            contract-name: prediction-token-v4
+            contract-name: prediction-token-v5
             expected-sender: ST1K2XGT5RNGT42N49BH936VDF8NXWNZJY0N432CM
             cost: 50690
-            path: "contracts\\pred-token-v4.clar"
+            path: "contracts\\pred-token-v5.clar"
             anchor-block-only: true
             clarity-version: 3
       epoch: "3.0"

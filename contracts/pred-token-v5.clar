@@ -1,7 +1,7 @@
 ;; Prediction Token (PMT) - SIP-010 Fungible Token
 ;; Rewards token for the Bitcoin Prediction Market platform
 
-(impl-trait .sip-010-trait-v4.sip-010-trait-v4)
+(impl-trait .sip-010-trait-v5.sip-010-trait-v4)
 
 ;; =============================================
 ;; CONSTANTS

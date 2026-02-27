@@ -3,7 +3,7 @@
 ;; Uses Clarity 4 features: get-burn-block-info?, tenure-height, bitwise operations
 
 ;; Import SIP-010 trait for token interactions
-(use-trait sip-010-trait-v4 .sip-010-trait-v4.sip-010-trait-v4)
+(use-trait sip-010-trait-v4 .sip-010-trait-v5.sip-010-trait-v4)
 
 ;; =============================================
 ;; CONSTANTS
